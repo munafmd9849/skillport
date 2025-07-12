@@ -1,0 +1,24 @@
+{
+  "name": "skillport",
+  "version": "1.0.0",
+  "description": "A fullstack platform for tracking coding practice progress",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "heroku-postbuild": "cd client && npm install && npm run build"
+  },
+  "keywords": ["coding", "practice", "tracking", "leetcode", "geeksforgeeks", "fullstack"],
+  "author": "SkillPort Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 
