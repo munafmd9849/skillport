@@ -608,11 +608,11 @@
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 
-                // Redirect based on role
+                // Redirect based on role (static pages)
                 if (data.user.role === 'student') {
-                    window.location.href = '/dashboard/student';
+                    window.location.href = 'student-dashboard.html';
                 } else {
-                    window.location.href = '/dashboard/community';
+                    window.location.href = 'student/communities.html';
                 }
             } catch (err) {
                 errorDiv.textContent = err.message;
@@ -644,11 +644,11 @@
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 
-                // Redirect based on role
+                // Redirect based on role (static pages)
                 if (data.user.role === 'student') {
-                    window.location.href = '/dashboard/student';
+                    window.location.href = 'student-dashboard.html';
                 } else {
-                    window.location.href = '/dashboard/community';
+                    window.location.href = 'student/communities.html';
                 }
             } catch (err) {
                 errorDiv.textContent = err.message;
