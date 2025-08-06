@@ -1,0 +1,232 @@
+// codeforces.js
+console.log("Codeforces content script loaded."); 
+
+// Content script for Codeforces submission detection
+
+(async function () {
+  console.log("Codeforces extension content script loaded");
+  
+  let lastSubmissionId = null;
+  let attemptsCount = 0;
+  let isMonitoring = false;
+
+  async function getEmail() {
+    return new Promise((res) => {
+      chrome.storage.sync.get(["email"], (result) => {
+        res(result.email || null);
+      });
+    });
+  }
+
+  // Check if we're on a submission page and start monitoring
+  function startMonitoring() {
+    if (isMonitoring) return;
+    
+    // Check if we're on a submission or contest page
+    const isSubmissionPage = window.location.pathname.includes('/submission/') ||
+                            window.location.pathname.includes('/status') ||
+                            window.location.pathname.includes('/contest/');
+    
+    if (!isSubmissionPage) return;
+    
+    console.log("Starting Codeforces submission monitoring...");
+    isMonitoring = true;
+    
+    // Start polling for submissions
+    setInterval(checkSubmission, 5000); // Check every 5 seconds
+    
+    // Also monitor for DOM changes that might indicate submission
+    monitorDOMChanges();
+  }
+
+  // Monitor DOM changes for submission indicators
+  function monitorDOMChanges() {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          // Look for various submission result elements
+          const resultSelectors = [
+            '.verdict-accepted', '.verdict-wa', '.verdict-tle',
+            '[data-e2e-locator="submission-verdict"]',
+            '.submission-verdict', '.result-accepted',
+            '.status-accepted', '.status-wrong'
+          ];
+          
+          for (const selector of resultSelectors) {
+            const resultElements = document.querySelectorAll(selector);
+            if (resultElements.length > 0) {
+              console.log("Submission result detected in DOM:", selector);
+              setTimeout(checkSubmission, 1000); // Check after a short delay
+              break;
+            }
+          }
+        }
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Check submission success on Codeforces
+  async function checkSubmission() {
+    try {
+      const email = await getEmail();
+      if (!email) {
+        console.log("No email found in storage");
+        return;
+      }
+
+      // Try multiple approaches to get submission data
+      const submissionData = await getSubmissionData();
+      
+      if (!submissionData) return;
+
+      if (submissionData.id === lastSubmissionId) return;
+
+      lastSubmissionId = submissionData.id;
+
+      if (submissionData.verdict === "Accepted" || submissionData.verdict === "OK") {
+        attemptsCount++;
+
+        const data = {
+          email,
+          platform: "codeforces",
+          problemTitle: submissionData.title,
+          problemSlug: submissionData.slug,
+          submissionTime: new Date().toISOString(),
+          attempts: attemptsCount,
+          language: submissionData.language || "unknown",
+          contestId: submissionData.contestId
+        };
+
+        console.log("Sending Codeforces submission data:", data);
+
+        chrome.runtime.sendMessage({ type: "submitData", data }, (response) => {
+          if (!response || !response.success) {
+            console.error("Failed to send Codeforces submission data", response);
+          } else {
+            console.log("Codeforces submission synced successfully:", response);
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Error checking Codeforces submission:", err);
+    }
+  }
+
+  // Try multiple methods to get submission data
+  async function getSubmissionData() {
+    // Method 1: Check for submission details on submission page
+    try {
+      if (window.location.pathname.includes('/submission/')) {
+        const submissionId = window.location.pathname.split('/submission/')[1];
+        const verdictElement = document.querySelector('.verdict-accepted, .verdict-wa, .verdict-tle, .verdict');
+        const problemElement = document.querySelector('.problem-title, .title');
+        const languageElement = document.querySelector('.language, .programming-language');
+        
+        if (verdictElement && problemElement) {
+          return {
+            id: submissionId,
+            title: problemElement.textContent.trim(),
+            slug: problemElement.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            verdict: verdictElement.textContent.trim(),
+            language: languageElement ? languageElement.textContent.trim() : "unknown",
+            contestId: getContestIdFromUrl()
+          };
+        }
+      }
+    } catch (err) {
+      console.log("Submission page method failed");
+    }
+
+    // Method 2: Check for submissions in status table
+    try {
+      const statusTable = document.querySelector('.status-frame-datatable, .submissions-table');
+      if (statusTable) {
+        const rows = statusTable.querySelectorAll('tr');
+        if (rows.length > 1) {
+          const latestRow = rows[1]; // First row is usually header
+          const verdictCell = latestRow.querySelector('.verdict-accepted, .verdict-wa, .verdict-tle, .verdict');
+          const problemCell = latestRow.querySelector('.problem-title, .title');
+          const timeCell = latestRow.querySelector('.time, .submission-time');
+          
+          if (verdictCell && problemCell) {
+            return {
+              id: Date.now(), // Generate unique ID
+              title: problemCell.textContent.trim(),
+              slug: problemCell.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              verdict: verdictCell.textContent.trim(),
+              language: "unknown",
+              contestId: getContestIdFromUrl()
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.log("Status table method failed");
+    }
+
+    // Method 3: Check for contest submissions
+    try {
+      if (window.location.pathname.includes('/contest/')) {
+        const contestSubmissions = document.querySelectorAll('.verdict-accepted');
+        if (contestSubmissions.length > 0) {
+          const latestSubmission = contestSubmissions[0];
+          const problemElement = latestSubmission.closest('tr').querySelector('.problem-title, .title');
+          
+          if (problemElement) {
+            return {
+              id: Date.now(),
+              title: problemElement.textContent.trim(),
+              slug: problemElement.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              verdict: "Accepted",
+              language: "unknown",
+              contestId: getContestIdFromUrl()
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.log("Contest submissions method failed");
+    }
+
+    return null;
+  }
+
+  // Get contest ID from URL
+  function getContestIdFromUrl() {
+    try {
+      const pathParts = window.location.pathname.split('/');
+      const contestIndex = pathParts.findIndex(part => part === 'contest');
+      if (contestIndex !== -1 && pathParts[contestIndex + 1]) {
+        return pathParts[contestIndex + 1];
+      }
+    } catch (err) {
+      console.error("Error getting contest ID:", err);
+    }
+    return null;
+  }
+
+  // Start monitoring when the page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startMonitoring);
+  } else {
+    startMonitoring();
+  }
+
+  // Also start monitoring when navigating to new pages
+  let currentUrl = window.location.href;
+  setInterval(() => {
+    if (window.location.href !== currentUrl) {
+      currentUrl = window.location.href;
+      isMonitoring = false;
+      lastSubmissionId = null;
+      attemptsCount = 0;
+      setTimeout(startMonitoring, 1000);
+    }
+  }, 1000);
+
+})(); 

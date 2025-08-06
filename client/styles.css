@@ -25,6 +25,7 @@
     --glass-blur: blur(16px);
     --shadow-premium: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     --shadow-gold: 0 4px 24px 0 rgba(251, 191, 36, 0.15);
+    --text-gradient: linear-gradient(90deg, #6366f1, #8b5cf6, #d946ef);
 }
 
 /* Global Styles */
@@ -32,6 +33,16 @@ body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
     background: linear-gradient(120deg, #f8fafc 0%, #e0e7ff 100%);
+}
+
+/* Text Gradient Effect */
+.text-gradient {
+    background: var(--text-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+    font-weight: 700;
 }
 
 /* Gradient Background */
@@ -636,4 +647,4 @@ html {
     box-shadow: var(--shadow-premium);
     border-radius: 1.5rem;
     border: 1px solid #e0e7ff;
-} 
+}

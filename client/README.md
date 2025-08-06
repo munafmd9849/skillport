@@ -1,6 +1,6 @@
-# SkillPort Client - Landing Page
+# SkillPort Client - Frontend Implementation
 
-This directory contains the frontend landing page for SkillPort, built with HTML, CSS, Bootstrap, and Tailwind CSS.
+This directory contains the frontend for SkillPort, built with HTML, CSS, Bootstrap, and Tailwind CSS.
 
 ## 📁 File Structure
 
@@ -9,7 +9,28 @@ client/
 ├── index.html          # Main landing page HTML file
 ├── styles.css          # Custom CSS styles
 ├── script.js           # JavaScript functionality
-└── README.md           # This file
+├── auth.js             # Authentication and routing logic
+├── README.md           # This file
+├── student/            # Student dashboard and related pages
+│   ├── student-dashboard.html
+│   ├── profile.html
+│   ├── communities.html
+│   ├── posts.html
+│   ├── projects.html
+│   ├── stats.html
+│   └── tracker.html
+├── community/          # Community-related pages
+│   ├── mentor/         # Mentor dashboard and related pages
+│   │   ├── mentor-dashboard.html
+│   │   ├── mentor-contests.html
+│   │   ├── mentor-feedback.html
+│   │   └── mentor-leaderboard.html
+│   └── admin/          # Admin dashboard and related pages
+│       ├── admin-dashboard.html
+│       ├── admin-users.html
+│       ├── admin-mentors.html
+│       ├── admin-contests.html
+│       └── admin-analytics.html
 ```
 
 ## 🎨 Design Features
@@ -93,6 +114,44 @@ client/
 - **Gradient Backgrounds** - Beautiful color gradients
 - **Custom Scrollbar** - Styled scrollbar
 - **Loading Animations** - Spinner for loading states
+
+## 🔐 Authentication and Routing
+
+### Overview
+The authentication and routing system directs users to their respective dashboards based on their roles (student, mentor, or admin) after successful login.
+
+### Key Files
+- **auth.js**: Central authentication and routing logic
+  - Functions for checking login status, getting current user, and logout
+  - Role-based route protection
+  - Login and signup form handling
+
+### Authentication Flow (Mock Implementation)
+1. User logs in through the login form on index.html
+2. The system uses a mock authentication system (no backend required):
+   - Pre-configured test accounts:
+     - Student: student@example.com (any password)
+     - Mentor: mentor@example.com (any password)
+     - Admin: admin@example.com (any password)
+   - Demo login buttons are provided for quick testing
+3. Upon successful login:
+   - Token and user data are stored in localStorage
+   - User is redirected to the appropriate dashboard based on their role:
+     - Students → student/student-dashboard.html
+     - Mentors → community/mentor/mentor-dashboard.html
+     - Admins → community/admin/admin-dashboard.html
+
+### Route Protection
+- Each dashboard page checks if the user is logged in
+- Each dashboard page verifies the user has the correct role
+- If authentication or authorization fails, user is redirected to the login page
+
+### Helper Functions
+- `isLoggedIn()`: Checks if user has a valid token
+- `getCurrentUser()`: Retrieves user data from localStorage
+- `logout()`: Removes user data and redirects to login page
+- `checkAuth()`: Verifies user is authorized for current page
+- `initAuth()`: Initializes authentication on page load
 
 ## 🎨 Color Scheme
 
@@ -206,4 +265,4 @@ This landing page can be easily integrated with:
 - **Backend API** - Connect to the SkillPort server
 - **CMS** - Use with content management systems
 - **Analytics** - Add Google Analytics or other tracking
-- **Forms** - Connect to form handling services 
+- **Forms** - Connect to form handling services

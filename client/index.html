@@ -75,10 +75,10 @@
                         <a class="nav-link" href="#contact">Contact</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-outline-primary" href="#" onclick="openLoginModal()">Login</a>
+                        <a class="btn btn-outline-primary" href="#" onclick="openLoginModal('login')">Login</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-primary" href="#" onclick="openLoginModal()"><i class="fas fa-star me-2"></i>Get Started</a>
+                        <a class="btn btn-primary" href="#" onclick="openLoginModal('signup')"><i class="fas fa-star me-2"></i>Get Started</a>
                     </li>
                 </ul>
             </div>
@@ -91,22 +91,31 @@
             <div class="row align-items-center min-vh-100">
                 <div class="col-lg-6">
                     <div class="hero-content glass">
-                        <h1 class="display-4 fw-bold mb-4">
-                            Track Your Coding Journey
+                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold mb-3 px-3 py-2">Your Coding Journey Starts Here</span>
+                        <h1 class="display-3 fw-bold mb-4">
+                            Track Your <span class="text-gradient">Coding Journey</span>
                         </h1>
-                        <p class="lead mb-4">
+                        <p class="lead mb-4 text-secondary">
                             SkillPort helps students track their progress on LeetCode, GeeksforGeeks, and other coding platforms. 
                             Mentors and admins can monitor progress with detailed analytics and insights.
                         </p>
                         <div class="hero-buttons mb-4">
-                            <a href="#" onclick="openLoginModal()" class="btn btn-primary btn-lg me-3 mb-3">
-                                <i class="fas fa-rocket me-2"></i>Get Started
+                            <a href="#" onclick="openLoginModal('signup')" class="btn btn-primary btn-lg me-3 mb-3 px-4 py-3 fw-bold shadow-lg">
+                                <i class="fas fa-rocket me-2"></i>Get Started Free
                             </a>
-                            <a href="#demo" class="btn btn-outline-light btn-lg mb-3">
-                                <i class="fas fa-play me-2"></i>Watch Demo
+                            <a href="#demo" class="btn btn-outline-light btn-lg mb-3 px-4 py-3">
+                                <i class="fas fa-play-circle me-2"></i>Watch Demo
                             </a>
                         </div>
-                        <div class="hero-stats mt-5">
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <div class="d-flex">
+                                <img src="https://randomuser.me/api/portraits/men/32.jpg" class="rounded-circle border border-3 border-white" width="40" height="40" alt="User" style="margin-right: -10px; z-index: 1">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" class="rounded-circle border border-3 border-white" width="40" height="40" alt="User" style="margin-right: -10px; z-index: 2">
+                                <img src="https://randomuser.me/api/portraits/men/68.jpg" class="rounded-circle border border-3 border-white" width="40" height="40" alt="User" style="margin-right: -10px; z-index: 3">
+                            </div>
+                            <span class="text-muted"><span class="text-primary fw-bold">1,200+</span> developers joined last month</span>
+                        </div>
+                        <div class="hero-stats mt-3">
                             <div class="row text-center">
                                 <div class="col-4">
                                     <div class="stat-item">
@@ -130,10 +139,33 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-6 position-relative">
+                    <div class="position-absolute top-0 end-0 translate-middle-y bg-warning rounded-circle" style="width: 150px; height: 150px; filter: blur(60px); opacity: 0.6; z-index: -1;"></div>
+                    <div class="position-absolute bottom-0 start-0 translate-middle bg-primary rounded-circle" style="width: 200px; height: 200px; filter: blur(80px); opacity: 0.4; z-index: -1;"></div>
                     <div class="hero-image text-center">
                         <img src="https://via.placeholder.com/600x400/6366f1/ffffff?text=SkillPort+Dashboard" 
                              alt="SkillPort Dashboard" class="img-fluid rounded-3 shadow-lg glass" style="max-width: 90%;">
+                    </div>
+                    <div class="position-absolute top-0 end-0 bg-white rounded-lg shadow-lg p-3 d-none d-md-flex align-items-center" style="width: 180px; transform: translate(20px, -20px);">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-check text-success"></i>
+                        </div>
+                        <div>
+                            <p class="mb-0 small fw-bold">Skills Verified</p>
+                            <p class="mb-0 small text-muted">by mentors</p>
+                        </div>
+                    </div>
+                    <div class="position-absolute bottom-0 start-50 bg-white rounded-lg shadow-lg p-3 d-none d-md-block" style="width: 200px; transform: translate(-50%, 40px);">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                <i class="fas fa-code text-primary"></i>
+                            </div>
+                            <p class="mb-0 small fw-bold">Coding Challenges</p>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p class="mb-0 small text-end mt-1"><span class="text-primary fw-bold">75%</span> completed</p>
                     </div>
                 </div>
             </div>
@@ -452,76 +484,107 @@
     <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem; overflow: hidden;">
+                <div class="modal-header border-0 bg-gradient-to-r from-indigo-600 to-blue-500 text-white">
+                    <h5 class="modal-title fw-bold">SkillPort</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-5">
                     <div class="text-center mb-4">
-                        <div class="rounded-full bg-primary shadow-lg p-3 flex items-center justify-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <div class="rounded-full bg-gradient-to-r from-indigo-600 to-blue-500 shadow-lg p-3 flex items-center justify-center mx-auto mb-4" style="width: 80px; height: 80px;">
                             <i class="fas fa-code text-white fa-2x"></i>
                         </div>
-                        <h4 class="fw-bold text-dark">Welcome to SkillPort</h4>
+                        <h3 class="fw-bold text-dark mb-2">Welcome to SkillPort</h3>
                         <p class="text-muted">Sign in to continue your coding journey</p>
                     </div>
                     
                     <!-- Google Login Button -->
-                    <button id="google-login" class="btn btn-outline-secondary w-100 mb-4">
-                        <svg class="me-2" width="20" height="20" viewBox="0 0 48 48">
+                    <button id="google-login" class="btn btn-light w-100 mb-4 d-flex align-items-center justify-content-center gap-2 py-2 shadow-sm border">
+                        <svg width="20" height="20" viewBox="0 0 48 48">
                             <g><path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.7 32.9 30.1 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8.1 2.9l6.1-6.1C34.5 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 19.5-7.6 21-17.5H24v-8.5h20.5z"></path></g>
                         </svg>
-                        Continue with Google
+                        <span class="fw-medium">Continue with Google</span>
                     </button>
                     
+                    <div class="d-flex align-items-center gap-2 my-4">
+                        <hr class="flex-grow-1 border-gray-300">
+                        <span class="text-muted small fw-medium">OR</span>
+                        <hr class="flex-grow-1 border-gray-300">
+                    </div>
+                    
                     <!-- Toggle Buttons -->
-                    <div class="d-flex justify-content-center mb-4">
-                        <button id="toggle-login" class="btn btn-link text-decoration-none fw-bold text-primary border-bottom border-primary border-2 px-4 py-2">Login</button>
-                        <button id="toggle-signup" class="btn btn-link text-decoration-none fw-bold text-muted px-4 py-2">Sign Up</button>
+                    <div class="d-flex justify-content-center mb-4 bg-light rounded-pill p-1">
+                        <button id="toggle-login" class="btn rounded-pill fw-bold text-white bg-primary px-4 py-2 flex-grow-1">Login</button>
+                        <button id="toggle-signup" class="btn rounded-pill fw-bold text-muted px-4 py-2 flex-grow-1">Sign Up</button>
                     </div>
                     
                     <!-- Login Form -->
                     <form id="login-form">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <input type="email" id="login-email" class="form-control" required>
+                            <label class="form-label fw-medium text-gray-700">Email Address</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
+                                <input type="email" id="login-email" class="form-control bg-light border-start-0" placeholder="you@example.com" required>
+                            </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Password</label>
-                            <input type="password" id="login-password" class="form-control" required>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-medium text-gray-700 mb-0">Password</label>
+                                <a href="#" class="text-primary text-decoration-none small">Forgot password?</a>
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                <input type="password" id="login-password" class="form-control bg-light border-start-0" placeholder="Enter your password" required>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">Login</button>
-                        <div id="login-error" class="text-danger text-center mt-2 d-none"></div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3 shadow-sm">Login</button>
+                        <div id="login-error" class="alert alert-danger text-center mt-2 d-none"></div>
                     </form>
                     
                     <!-- Signup Form -->
                     <form id="signup-form" class="d-none">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Full Name</label>
-                            <input type="text" id="signup-name" class="form-control" required>
+                            <label class="form-label fw-medium text-gray-700">Full Name</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                                <input type="text" id="signup-name" class="form-control bg-light border-start-0" placeholder="John Doe" required>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <input type="email" id="signup-email" class="form-control" required>
+                            <label class="form-label fw-medium text-gray-700">Email Address</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
+                                <input type="email" id="signup-email" class="form-control bg-light border-start-0" placeholder="you@example.com" required>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Password</label>
-                            <input type="password" id="signup-password" class="form-control" required>
+                            <label class="form-label fw-medium text-gray-700">Password</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                <input type="password" id="signup-password" class="form-control bg-light border-start-0" placeholder="Create a strong password" required>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Role</label>
-                            <select id="signup-role" class="form-select" required>
-                                <option value="student">Student</option>
-                                <option value="mentor">Mentor</option>
-                                <option value="admin">Admin</option>
-                            </select>
+                            <label class="form-label fw-medium text-gray-700">Role</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-tag text-muted"></i></span>
+                                <select id="signup-role" class="form-select bg-light border-start-0" required>
+                                    <option value="student">Student</option>
+                                    <option value="mentor">Mentor</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Username</label>
-                            <input type="text" id="signup-username" class="form-control" required>
-                            <div id="username-hint" class="form-text">Auto-suggested from email, but you can edit.</div>
+                            <label class="form-label fw-medium text-gray-700">Username</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-at text-muted"></i></span>
+                                <input type="text" id="signup-username" class="form-control bg-light border-start-0" placeholder="Choose a username" required>
+                            </div>
+                            <div id="username-hint" class="form-text small text-primary">Auto-suggested from email, but you can edit.</div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">Sign Up</button>
-                        <div id="signup-error" class="text-danger text-center mt-2 d-none"></div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3 shadow-sm">Create Account</button>
+                        <div id="signup-error" class="alert alert-danger text-center mt-2 d-none"></div>
                     </form>
                 </div>
             </div>
@@ -536,9 +599,16 @@
     
     <script>
         // Login Modal Functions
-        function openLoginModal() {
+        function openLoginModal(formType = 'login') {
             const modal = new bootstrap.Modal(document.getElementById('loginModal'));
             modal.show();
+            
+            // Switch to the requested form type
+            if (formType === 'signup') {
+                setTimeout(() => {
+                    document.getElementById('toggle-signup').click();
+                }, 300);
+            }
         }
         
         // Toggle between login and signup forms
@@ -548,19 +618,19 @@
         const signupForm = document.getElementById('signup-form');
         
         loginBtn.onclick = () => {
-            loginBtn.classList.add('text-primary', 'border-primary');
-            loginBtn.classList.remove('text-muted');
-            signupBtn.classList.remove('text-primary', 'border-primary');
-            signupBtn.classList.add('text-muted');
+            loginBtn.classList.add('text-white', 'bg-primary');
+            loginBtn.classList.remove('text-muted', 'bg-transparent');
+            signupBtn.classList.remove('text-white', 'bg-primary');
+            signupBtn.classList.add('text-muted', 'bg-transparent');
             loginForm.classList.remove('d-none');
             signupForm.classList.add('d-none');
         };
         
         signupBtn.onclick = () => {
-            signupBtn.classList.add('text-primary', 'border-primary');
-            signupBtn.classList.remove('text-muted');
-            loginBtn.classList.remove('text-primary', 'border-primary');
-            loginBtn.classList.add('text-muted');
+            signupBtn.classList.add('text-white', 'bg-primary');
+            signupBtn.classList.remove('text-muted', 'bg-transparent');
+            loginBtn.classList.remove('text-white', 'bg-primary');
+            loginBtn.classList.add('text-muted', 'bg-transparent');
             signupForm.classList.remove('d-none');
             loginForm.classList.add('d-none');
         };
@@ -587,79 +657,15 @@
             return false;
         }
         
-        // Login form submit
-        loginForm.onsubmit = async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
-            const errorDiv = document.getElementById('login-error');
-            errorDiv.classList.add('d-none');
-            
-            try {
-                const res = await fetch('http://localhost:5000/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) throw new Error(data.message || 'Login failed');
-                
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                // Redirect based on role (static pages)
-                if (data.user.role === 'student') {
-                    window.location.href = 'student-dashboard.html';
-                } else {
-                    window.location.href = 'student/communities.html';
-                }
-            } catch (err) {
-                errorDiv.textContent = err.message;
-                errorDiv.classList.remove('d-none');
-            }
-        };
-        
-        // Signup form submit
-        signupForm.onsubmit = async function(e) {
-            e.preventDefault();
-            const name = document.getElementById('signup-name').value.trim();
-            const email = document.getElementById('signup-email').value.trim();
-            const password = document.getElementById('signup-password').value;
-            const role = document.getElementById('signup-role').value;
-            const username = document.getElementById('signup-username').value.trim();
-            const errorDiv = document.getElementById('signup-error');
-            errorDiv.classList.add('d-none');
-            
-            try {
-                const res = await fetch('http://localhost:5000/api/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, role, username })
-                });
-                const data = await res.json();
-                
-                if (!res.ok) throw new Error(data.message || 'Signup failed');
-                
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                // Redirect based on role (static pages)
-                if (data.user.role === 'student') {
-                    window.location.href = 'student-dashboard.html';
-                } else {
-                    window.location.href = 'student/communities.html';
-                }
-            } catch (err) {
-                errorDiv.textContent = err.message;
-                errorDiv.classList.remove('d-none');
-            }
-        };
-        
         // Google login placeholder
         document.getElementById('google-login').onclick = function() {
             alert('Google login coming soon!');
         };
+        
+        // Login and signup form handling is now in auth.js
     </script>
+    
+    <!-- Authentication Script -->
+    <script src="auth.js"></script>
 </body>
-</html> 
+</html>
