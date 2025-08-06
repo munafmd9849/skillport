@@ -23,9 +23,10 @@ A fullstack web platform that helps students track their coding practice progres
 - Manage user accounts and permissions
 
 ### Browser Extension Support
-- Automatic submission detection on LeetCode & GeeksforGeeks
-- Sync submissions to the backend
+- Automatic submission detection on LeetCode, GeeksforGeeks, and Codeforces
+- Sync submissions to the backend using a consistent data format
 - Real-time progress tracking
+- Console logging of submission data in clean JSON format
 
 ## 🏗️ Project Structure
 
@@ -268,4 +269,4 @@ This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-For support and questions, please open an issue in the GitHub repository. 
+For support and questions, please open an issue in the GitHub repository.

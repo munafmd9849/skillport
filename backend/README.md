@@ -42,21 +42,50 @@ This is the backend server for the SkillPort Submission Tracker Extension.
 ## API
 
 ### POST `/api/submissions`
-- Accepts JSON body with submission data:
+- Accepts JSON body with submission data in the simplified format:
   ```json
   {
+    "username": "platform_username",
     "email": "user@example.com",
+    "url": "https://platform.com/problem/slug",
+    "slug": "problem-slug",
+    "timestamp": "2023-06-15T12:34:56.789Z",
     "platform": "leetcode",
-    "problemTitle": "Two Sum",
-    "problemSlug": "two-sum",
-    "submissionTime": "2024-01-01T12:00:00.000Z",
-    "attempts": 1,
-    "language": "javascript",
-    "contestId": "1234"
+    "attempts": 1
   }
+  ```
+
+- The server maps this data to the appropriate fields in the database schema
+- Platform-specific username fields are automatically populated based on the platform value
+
+
+
   ```
 - Returns `{ success: true, message: 'Submission saved', data: ... }` on success.
 
+## Database Schema
+
+The MongoDB schema for submissions includes:
+
+### Core Fields (New Format)
+- `username`: The platform-specific username
+- `email`: User's email address
+- `url`: Full URL of the problem
+- `slug`: Problem slug/identifier
+- `timestamp`: Submission timestamp
+- `platform`: Platform name (leetcode, codeforces, gfg)
+- `attempts`: Number of submission attempts
+
+### Legacy Fields (For Backward Compatibility)
+- `problemTitle`: Title of the problem
+- `problemSlug`: Legacy slug field
+- `leetcodeUsername`: LeetCode-specific username
+- `codeforcesUsername`: Codeforces-specific username
+- `gfgUsername`: GeeksforGeeks-specific username
+- `submissionTime`: Legacy timestamp field
+- `language`: Programming language used
+- `contestId`: Contest identifier (for platforms like Codeforces)
+
 ## Notes
 - Make sure your extension is configured to send data to the correct backend URL (default: `http://localhost:3000`).
-- You can view all submissions in your MongoDB database. 
+- You can view all submissions in your MongoDB database.

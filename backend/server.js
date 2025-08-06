@@ -24,9 +24,39 @@ mongoose.connect('mongodb://localhost:27017/skillport', {
 // Submission endpoint
 app.post('/api/submissions', async (req, res) => {
   try {
-    const submission = new Submission(req.body);
+    const data = req.body;
+    
+    // Map incoming data to the schema fields
+    const submissionData = {
+      // Core fields from simplified format
+      username: data.username,
+      email: data.email,
+      url: data.url,
+      slug: data.slug,
+      timestamp: data.timestamp,
+      platform: data.platform,
+      attempts: data.attempts,
+      
+      // Legacy fields for backward compatibility
+      problemTitle: data.problemTitle,
+      problemSlug: data.problemSlug || data.slug,
+      submissionTime: data.submissionTime || data.timestamp,
+      language: data.language,
+      contestId: data.contestId
+    };
+    
+    // Set platform-specific username fields
+    if (data.platform === 'leetcode') {
+      submissionData.leetcodeUsername = data.username;
+    } else if (data.platform === 'codeforces') {
+      submissionData.codeforcesUsername = data.username;
+    } else if (data.platform === 'gfg') {
+      submissionData.gfgUsername = data.username;
+    }
+    
+    const submission = new Submission(submissionData);
     await submission.save();
-    console.log('Received submission:', req.body);
+    console.log('Received submission:', submissionData);
     res.status(201).json({ success: true, message: 'Submission saved', data: submission });
   } catch (err) {
     console.error('Error saving submission:', err);
@@ -41,4 +71,4 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-}); 
+});

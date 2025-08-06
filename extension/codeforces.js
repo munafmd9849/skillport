@@ -91,18 +91,30 @@ console.log("Codeforces content script loaded.");
       if (submissionData.verdict === "Accepted" || submissionData.verdict === "OK") {
         attemptsCount++;
 
+        // Extract username from Codeforces page
+        let codeforcesUsername = null;
+        try {
+          const userElement = document.querySelector('.user-name, .rated-user, .handle');
+          if (userElement) {
+            codeforcesUsername = userElement.textContent.trim();
+          }
+        } catch (err) {
+          console.error("Error extracting username:", err);
+        }
+        
+        // Create simplified data object with only required fields
         const data = {
-          email,
+          username: codeforcesUsername || '<not found>',
+          email: email || '<not found>',
+          url: window.location.href,
+          slug: submissionData.slug,
+          timestamp: new Date().toISOString(),
           platform: "codeforces",
-          problemTitle: submissionData.title,
-          problemSlug: submissionData.slug,
-          submissionTime: new Date().toISOString(),
-          attempts: attemptsCount,
-          language: submissionData.language || "unknown",
-          contestId: submissionData.contestId
+          attempts: attemptsCount
         };
 
-        console.log("Sending Codeforces submission data:", data);
+        // Log clean JSON object to console
+        console.log(JSON.stringify(data, null, 2));
 
         chrome.runtime.sendMessage({ type: "submitData", data }, (response) => {
           if (!response || !response.success) {
@@ -229,4 +241,4 @@ console.log("Codeforces content script loaded.");
     }
   }, 1000);
 
-})(); 
+})();

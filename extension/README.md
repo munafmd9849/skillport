@@ -18,18 +18,39 @@ This Chrome extension tracks your coding submissions on LeetCode, GeeksforGeeks,
 
 ## How it Works
 
+### Data Format
+All platforms use a consistent data format for logging and sending to the backend:
+```json
+{
+  "username": "your_platform_username",
+  "email": "your_email@example.com",
+  "url": "https://platform.com/problem/slug",
+  "slug": "problem-slug",
+  "timestamp": "2023-06-15T12:34:56.789Z",
+  "platform": "platform_name",
+  "attempts": 1
+}
+```
+
 ### LeetCode
 - The extension automatically detects when you're on a LeetCode problem page
 - It monitors for successful submissions and sends the data to your backend
 - Works with both the API and DOM-based detection methods
+- Logs the simplified data format to console for debugging
 
 ### GeeksforGeeks
 - Monitors submissions on GeeksforGeeks problem pages
 - Tracks successful submissions and sends data to backend
+- Logs the simplified data format to console for debugging
 
 ### Codeforces
 - Monitors submissions on Codeforces contest and problem pages
 - Tracks successful submissions and sends data to backend
+- Logs the simplified data format to console for debugging
+  - Codeforces username
+  - Email (from extension settings)
+  - Contest ID (if applicable)
+  - Programming language used
 
 ## Troubleshooting
 
@@ -70,4 +91,4 @@ The extension sends the following data to your backend:
   "attempts": 1,
   "language": "javascript"
 }
-``` 
+```
