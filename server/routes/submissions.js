@@ -10,11 +10,21 @@ const validateSubmission = [
   body('platform')
     .isIn(['leetcode', 'geeksforgeeks', 'hackerrank', 'codeforces'])
     .withMessage('Platform must be leetcode, geeksforgeeks, hackerrank, or codeforces'),
+  body('url')
+    .optional()
+    .isURL()
+    .withMessage('URL must be valid'),
+  body('slug')
+    .optional()
+    .isString()
+    .withMessage('Slug must be a string'),
   body('problemTitle')
+    .optional()
     .trim()
     .isLength({ min: 1, max: 200 })
     .withMessage('Problem title must be between 1 and 200 characters'),
   body('difficulty')
+    .optional()
     .isIn(['easy', 'medium', 'hard'])
     .withMessage('Difficulty must be easy, medium, or hard'),
   body('status')
@@ -24,7 +34,11 @@ const validateSubmission = [
   body('attempts')
     .optional()
     .isInt({ min: 1 })
-    .withMessage('Attempts must be a positive integer')
+    .withMessage('Attempts must be a positive integer'),
+  body('username')
+    .optional()
+    .isString()
+    .withMessage('Username must be a string')
 ];
 
 // @route   POST /api/submissions
@@ -41,10 +55,22 @@ router.post('/', authenticateToken, validateSubmission, async (req, res) => {
       });
     }
 
+    // Process the submission to ensure it has all required fields
     const submissionData = {
       ...req.body,
-      email: req.user.email
+      email: req.user.email,
+      timestamp: req.body.timestamp || new Date()
     };
+    
+    // If we have a URL but no problemUrl, copy it
+    if (req.body.url && !req.body.problemUrl) {
+      submissionData.problemUrl = req.body.url;
+    }
+    
+    // If we have a slug but no problemTitle, use it as a fallback
+    if (req.body.slug && !req.body.problemTitle) {
+      submissionData.problemTitle = req.body.slug.replace(/-/g, ' ');
+    }
 
     const submission = new Submission(submissionData);
     await submission.save();
@@ -269,10 +295,26 @@ router.post('/bulk', authenticateToken, async (req, res) => {
       });
     }
 
-    const submissionData = submissions.map(sub => ({
-      ...sub,
-      email: req.user.email
-    }));
+    const submissionData = submissions.map(sub => {
+      // Process each submission to ensure it has all required fields
+      const processedSub = {
+        ...sub,
+        email: req.user.email,
+        timestamp: sub.timestamp || new Date(),
+      };
+      
+      // If we have a URL but no problemUrl, copy it
+      if (sub.url && !sub.problemUrl) {
+        processedSub.problemUrl = sub.url;
+      }
+      
+      // If we have a slug but no problemTitle, use it as a fallback
+      if (sub.slug && !sub.problemTitle) {
+        processedSub.problemTitle = sub.slug.replace(/-/g, ' ');
+      }
+      
+      return processedSub;
+    });
 
     const createdSubmissions = await Submission.insertMany(submissionData);
 
@@ -289,4 +331,51 @@ router.post('/bulk', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router; 
+// @route   POST /api/submissions/extension
+// @desc    Create a new submission from browser extension (simplified format)
+// @access  Public (no auth required for extension submissions)
+router.post('/extension', async (req, res) => {
+  try {
+    // Validate minimal required fields
+    const { email, platform, url, slug, timestamp } = req.body;
+    
+    if (!email || !platform || !url) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: email, platform, and url are required' 
+      });
+    }
+
+    // Process the submission to ensure it has all required fields
+    const submissionData = {
+      ...req.body,
+      timestamp: timestamp || new Date(),
+      status: 'solved' // Default for extension submissions
+    };
+    
+    // If we have a URL but no problemUrl, copy it
+    if (url && !req.body.problemUrl) {
+      submissionData.problemUrl = url;
+    }
+    
+    // If we have a slug but no problemTitle, use it as a fallback
+    if (slug && !req.body.problemTitle) {
+      submissionData.problemTitle = slug.replace(/-/g, ' ');
+    }
+
+    const submission = new Submission(submissionData);
+    await submission.save();
+
+    res.status(201).json({
+      message: 'Submission created successfully',
+      submission
+    });
+
+  } catch (error) {
+    console.error('Extension submission error:', error);
+    res.status(500).json({ 
+      error: 'Server error while creating submission' 
+    });
+  }
+});
+
+module.exports = router;

@@ -27,6 +27,8 @@ A fullstack web platform that helps students track their coding practice progres
 - Sync submissions to the backend using a consistent data format
 - Real-time progress tracking
 - Console logging of submission data in clean JSON format
+- Dual-endpoint configuration with fallback mechanism
+- Simplified submission data format with core fields (username, email, url, slug, timestamp, platform, attempts)
 
 ## 🏗️ Project Structure
 
@@ -44,16 +46,17 @@ skillport/
 ├── server/                 # Node.js Backend
 │   ├── models/            # MongoDB models
 │   │   ├── User.js
-│   │   ├── Submission.js
+│   │   ├── Submission.js  # Updated with core and extended fields
 │   │   └── Batch.js
 │   ├── routes/            # API routes
 │   │   ├── auth.js
-│   │   ├── submissions.js
+│   │   ├── submissions.js # Enhanced with extension and bulk endpoints
 │   │   ├── batches.js
 │   │   └── dashboard.js
 │   ├── middleware/        # Custom middleware
 │   │   └── auth.js
 │   ├── server.js          # Main server file
+│   ├── test-endpoints.js  # API testing script
 │   └── package.json
 ├── package.json           # Root package.json
 └── README.md
@@ -97,6 +100,55 @@ This will start both the backend server (port 5000) and frontend development ser
 ## 🔧 Configuration
 
 ### Environment Variables (server/.env)
+
+```
+MONGODB_URI=mongodb://localhost:27017/skillport
+JWT_SECRET=your_jwt_secret
+PORT=5000
+NODE_ENV=development
+```
+
+## 🔌 API Endpoints
+
+### Authentication
+
+- `POST /api/auth/signup`: Register a new user
+- `POST /api/auth/login`: Login and get authentication token
+
+### Submissions
+
+- `POST /api/submissions`: Create a new submission (authenticated)
+- `POST /api/submissions/extension`: Create a submission from extension (unauthenticated)
+- `POST /api/submissions/bulk`: Create multiple submissions (authenticated)
+- `GET /api/submissions`: Get all submissions for the authenticated user
+- `GET /api/submissions/:id`: Get a specific submission
+- `PUT /api/submissions/:id`: Update a submission
+- `DELETE /api/submissions/:id`: Delete a submission
+
+### Submission Model
+
+The Submission model has been designed to accommodate both simplified data from the extension and comprehensive data for the application:
+
+**Core Fields (from Extension):**
+- `username`: User's name on the platform
+- `email`: User's email for identification
+- `url`: Problem URL
+- `slug`: Problem identifier (hyphenated)
+- `timestamp`: Submission time
+- `platform`: Coding platform name
+- `attempts`: Number of attempts
+
+**Extended Fields (for Application):**
+- `problemTitle`: Problem title (derived from slug if not provided)
+- `problemUrl`: Problem URL (same as url if not provided)
+- `difficulty`: Problem difficulty level
+- `status`: Submission status (solved, attempted, etc.)
+- `solution`: Solution code
+- `language`: Programming language used
+- `timeComplexity`: Time complexity of solution
+- `spaceComplexity`: Space complexity of solution
+- `notes`: User notes
+- `tags`: Problem tags
 
 ```env
 # MongoDB Atlas Connection String

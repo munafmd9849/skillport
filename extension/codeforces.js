@@ -1,14 +1,16 @@
 // codeforces.js
-console.log("Codeforces content script loaded."); 
+console.log("📡 SkillPort Codeforces Tracker Active"); 
 
 // Content script for Codeforces submission detection
 
 (async function () {
-  console.log("Codeforces extension content script loaded");
-  
+  // Track submission state
   let lastSubmissionId = null;
   let attemptsCount = 0;
   let isMonitoring = false;
+  let submissionInProgress = false;
+  let lastSubmissionTime = 0;
+  const SUBMISSION_COOLDOWN = 5000; // 5 seconds cooldown between submissions
 
   async function getEmail() {
     return new Promise((res) => {
@@ -33,7 +35,7 @@ console.log("Codeforces content script loaded.");
     isMonitoring = true;
     
     // Start polling for submissions
-    setInterval(checkSubmission, 5000); // Check every 5 seconds
+    setInterval(debouncedCheckSubmission, 5000); // Check every 5 seconds
     
     // Also monitor for DOM changes that might indicate submission
     monitorDOMChanges();
@@ -56,7 +58,7 @@ console.log("Codeforces content script loaded.");
             const resultElements = document.querySelectorAll(selector);
             if (resultElements.length > 0) {
               console.log("Submission result detected in DOM:", selector);
-              setTimeout(checkSubmission, 1000); // Check after a short delay
+              debouncedCheckSubmission(); // Use debounced version
               break;
             }
           }
@@ -70,9 +72,30 @@ console.log("Codeforces content script loaded.");
     });
   }
 
+  // Debounce function to limit how often we check submissions
+  function debounce(func, wait) {
+    let timeout;
+    return function() {
+      const context = this;
+      const args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+  }
+  
+  // Debounced version of checkSubmission
+  const debouncedCheckSubmission = debounce(checkSubmission, 1000);
+  
   // Check submission success on Codeforces
   async function checkSubmission() {
     try {
+      // Prevent duplicate processing
+      const now = Date.now();
+      if (submissionInProgress || now - lastSubmissionTime < SUBMISSION_COOLDOWN) {
+        console.log("⏱️ Submission cooldown active or submission in progress, skipping...");
+        return;
+      }
+      
       const email = await getEmail();
       if (!email) {
         console.log("No email found in storage");
@@ -85,7 +108,10 @@ console.log("Codeforces content script loaded.");
       if (!submissionData) return;
 
       if (submissionData.id === lastSubmissionId) return;
-
+      
+      // Set flags to prevent duplicate submissions
+      submissionInProgress = true;
+      lastSubmissionTime = now;
       lastSubmissionId = submissionData.id;
 
       if (submissionData.verdict === "Accepted" || submissionData.verdict === "OK") {
@@ -117,6 +143,8 @@ console.log("Codeforces content script loaded.");
         console.log(JSON.stringify(data, null, 2));
 
         chrome.runtime.sendMessage({ type: "submitData", data }, (response) => {
+          submissionInProgress = false; // Reset flag after submission attempt
+          
           if (!response || !response.success) {
             console.error("Failed to send Codeforces submission data", response);
           } else {
@@ -126,6 +154,7 @@ console.log("Codeforces content script loaded.");
       }
     } catch (err) {
       console.error("Error checking Codeforces submission:", err);
+      submissionInProgress = false; // Reset flag on error
     }
   }
 
@@ -237,6 +266,9 @@ console.log("Codeforces content script loaded.");
       isMonitoring = false;
       lastSubmissionId = null;
       attemptsCount = 0;
+      submissionInProgress = false;
+      lastSubmissionTime = 0;
+      console.log("🔄 URL changed, resetting submission tracker");
       setTimeout(startMonitoring, 1000);
     }
   }, 1000);

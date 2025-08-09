@@ -1,20 +1,43 @@
 const mongoose = require('mongoose');
 
 const submissionSchema = new mongoose.Schema({
+  // Core fields (simplified format from extension)
+  username: { 
+    type: String,
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
     lowercase: true,
     trim: true
   },
+  url: {
+    type: String,
+    trim: true
+  },
+  slug: {
+    type: String,
+    trim: true
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
   platform: {
     type: String,
     enum: ['leetcode', 'geeksforgeeks', 'hackerrank', 'codeforces'],
     required: [true, 'Platform is required']
   },
+  attempts: {
+    type: Number,
+    default: 1,
+    min: [1, 'Attempts must be at least 1']
+  },
+  
+  // Extended fields (for additional functionality)
   problemTitle: {
     type: String,
-    required: [true, 'Problem title is required'],
     trim: true
   },
   problemUrl: {
@@ -24,17 +47,12 @@ const submissionSchema = new mongoose.Schema({
   difficulty: {
     type: String,
     enum: ['easy', 'medium', 'hard'],
-    required: [true, 'Difficulty is required']
+    default: 'medium'
   },
   status: {
     type: String,
     enum: ['solved', 'reattempt', 'doubt', 'in-progress'],
     default: 'solved'
-  },
-  attempts: {
-    type: Number,
-    default: 1,
-    min: [1, 'Attempts must be at least 1']
   },
   solution: {
     type: String,
@@ -78,6 +96,9 @@ submissionSchema.index({ email: 1, timestamp: -1 });
 submissionSchema.index({ platform: 1, difficulty: 1 });
 submissionSchema.index({ status: 1 });
 submissionSchema.index({ tags: 1 });
+submissionSchema.index({ slug: 1 });
+submissionSchema.index({ username: 1 });
+submissionSchema.index({ url: 1 });
 
 // Virtual for formatted date
 submissionSchema.virtual('formattedDate').get(function() {
@@ -145,4 +166,4 @@ submissionSchema.statics.getPlatformStats = async function(email) {
   ]);
 };
 
-module.exports = mongoose.model('Submission', submissionSchema); 
+module.exports = mongoose.model('Submission', submissionSchema);

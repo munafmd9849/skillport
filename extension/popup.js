@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const emailInput = document.getElementById('email');
   const saveButton = document.getElementById('saveEmail');
   const testButton = document.getElementById('testConnection');
+  const openTestPageButton = document.getElementById('openTestPage');
   const statusDiv = document.getElementById('status');
 
   // Load saved email
@@ -46,6 +47,13 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         showStatus('Backend connection failed: ' + (response?.error || 'Unknown error'), 'error');
       }
+    });
+  });
+  
+  // Open test submission page
+  openTestPageButton.addEventListener('click', function() {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('test-submission.html')
     });
   });
 

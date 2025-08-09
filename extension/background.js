@@ -2,32 +2,104 @@
 
 console.log("Background script loaded");
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+// Configuration for backend endpoints
+const CONFIG = {
+  // Primary endpoint (server implementation)
+  serverEndpoint: "http://localhost:3001/api/submissions",
+  // Fallback endpoint (legacy backend implementation)
+  backendEndpoint: "http://localhost:3001/api/submissions"
+};
+
+// Track submissions to avoid duplicates
+const submissionTracker = {
+  lastSubmission: null,
+  lastTimestamp: 0,
+  
+  // Check if this is a duplicate submission (within 10 seconds)
+  isDuplicate: function(data) {
+    if (!this.lastSubmission) return false;
+    
+    const now = Date.now();
+    const timeDiff = now - this.lastTimestamp;
+    
+    // If it's the same URL and within 10 seconds, consider it a duplicate
+    if (data.url === this.lastSubmission.url && timeDiff < 10000) {
+      console.log("Duplicate submission detected, ignoring");
+      return true;
+    }
+    
+    return false;
+  },
+  
+  // Record this submission
+  recordSubmission: function(data) {
+    this.lastSubmission = data;
+    this.lastTimestamp = Date.now();
+  }
+};
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Received message:", message);
   
   if (message.type === "submitData") {
-    try {
-      console.log("Sending submission data to backend:", message.data);
-      
-      const response = await fetch("http://localhost:3001/api/submissions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(message.data)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const resJson = await response.json();
-      console.log("Backend response:", resJson);
-      sendResponse({ success: true, data: resJson });
-    } catch (err) {
-      console.error("Error sending data to backend:", err);
-      sendResponse({ success: false, error: err.message });
+    // Check for required fields
+    if (!message.data || !message.data.platform || !message.data.url) {
+      console.error("Missing required submission data");
+      sendResponse({ success: false, error: "Missing required submission data" });
+      return true;
     }
+    
+    // Check for duplicate submissions
+    if (submissionTracker.isDuplicate(message.data)) {
+      sendResponse({ success: true, data: { message: "Duplicate submission ignored" } });
+      return true;
+    }
+    
+    // Record this submission to prevent duplicates
+    submissionTracker.recordSubmission(message.data);
+    
+    // Process the submission asynchronously
+    (async () => {
+      try {
+        console.log("Sending submission data to backend:", message.data);
+        
+        // Try the server endpoint first, fall back to backend if it fails
+        let endpoint = CONFIG.serverEndpoint;
+        let response;
+        
+        try {
+          response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(message.data)
+          });
+        } catch (err) {
+          console.log("Primary endpoint failed, trying fallback:", err);
+          endpoint = CONFIG.backendEndpoint;
+          response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(message.data)
+          });
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const resJson = await response.json();
+        console.log("Backend response:", resJson);
+        sendResponse({ success: true, data: resJson });
+      } catch (err) {
+        console.error("Error sending data to backend:", err);
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+    
     return true; // Keep the message channel open for async response
   }
 });

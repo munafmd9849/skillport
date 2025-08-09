@@ -12,13 +12,21 @@
     "install-all": "npm install && cd server && npm install && cd ../client && npm install",
     "heroku-postbuild": "cd client && npm install && npm run build"
   },
-  "keywords": ["coding", "practice", "tracking", "leetcode", "geeksforgeeks", "fullstack"],
+  "keywords": [
+    "coding",
+    "practice",
+    "tracking",
+    "leetcode",
+    "geeksforgeeks",
+    "fullstack"
+  ],
   "author": "SkillPort Team",
   "license": "MIT",
   "devDependencies": {
+    "axios": "^1.11.0",
     "concurrently": "^7.6.0"
   },
   "engines": {
     "node": ">=16.0.0"
   }
-} 
+}
