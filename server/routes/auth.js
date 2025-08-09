@@ -75,6 +75,7 @@ router.post('/signup', validateSignup, async (req, res) => {
     const user = new User({
       name,
       email: email.toLowerCase(),
+      username, // Add username field from request or generated from email
       passwordHash: password, // Will be hashed by pre-save middleware
       role
     });
@@ -350,4 +351,4 @@ router.put('/users/:userId/status', authenticateToken, requireAdmin, async (req,
   }
 });
 
-module.exports = router; 
+module.exports = router;

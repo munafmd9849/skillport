@@ -31,21 +31,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const testData = {
       email: emailInput.value || 'test@example.com',
-      platform: 'test',
-      problemTitle: 'Test Problem',
-      problemSlug: 'test-problem',
-      submissionTime: new Date().toISOString(),
+      platform: 'leetcode', // Using a valid platform value from the enum
+      url: 'http://example.com/test-problem',
+      slug: 'test-problem',
+      username: 'testuser',
+      timestamp: new Date().toISOString(),
       attempts: 1
     };
+
+    console.log('Sending test data:', testData);
 
     chrome.runtime.sendMessage({
       type: 'submitData',
       data: testData
     }, function(response) {
+      console.log('Test connection response:', response);
       if (response && response.success) {
         showStatus('Backend connection successful!', 'success');
       } else {
-        showStatus('Backend connection failed: ' + (response?.error || 'Unknown error'), 'error');
+        const errorMsg = response?.error || 'Unknown error';
+        console.error('Connection test failed:', errorMsg);
+        showStatus('Backend connection failed: ' + errorMsg, 'error');
       }
     });
   });

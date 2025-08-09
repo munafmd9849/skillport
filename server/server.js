@@ -3,12 +3,20 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const bodyParser = require('body-parser');
+const path = require('path');
 require('dotenv').config();
 
+// Import routes
 const authRoutes = require('./routes/auth');
 const submissionRoutes = require('./routes/submissions');
 const batchRoutes = require('./routes/batches');
 const dashboardRoutes = require('./routes/dashboard');
+const userRoutes = require('./routes/users');
+const taskRoutes = require('./routes/tasks');
+const communityRoutes = require('./routes/communities');
+const contestRoutes = require('./routes/contests');
+const leaderboardRoutes = require('./routes/leaderboards');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,27 +35,28 @@ app.use(limiter);
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://your-domain.com'] 
-    : ['http://localhost:3000'],
+    : ['http://localhost:3000', 'http://localhost:5000', 'chrome-extension://*'],
   credentials: true
 }));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(bodyParser.json());
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ Connected to MongoDB Atlas'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+// Serve static files from client directory
+app.use(express.static(path.join(__dirname, '../client')));
 
-// Routes
+// Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/communities', communityRoutes);
+app.use('/api/contests', contestRoutes);
+app.use('/api/leaderboards', leaderboardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -63,12 +72,38 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Catch-all route for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 SkillPort server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-}); 
+// Connect to MongoDB and start server
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/skillport';
+
+console.log('Attempting to connect to MongoDB...');
+
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+})
+.then(() => {
+  console.log('✅ MongoDB connected successfully');
+  app.listen(PORT, () => {
+    console.log(`🚀 SkillPort server running on port ${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+  console.log('⚠️  Starting server without MongoDB for testing...');
+  console.log('📝 Some features may not work without database connection');
+  
+  // Start server without MongoDB for testing
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT} (No MongoDB)`);
+    console.log('🔗 Health check: http://localhost:5000/api/health');
+    console.log('📥 Extension endpoint: http://localhost:5000/api/submissions');
+  });
+});

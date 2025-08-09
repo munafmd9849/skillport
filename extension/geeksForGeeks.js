@@ -158,7 +158,7 @@ async function handleSuccessfulSubmission() {
         const title = titleElement ? titleElement.textContent.trim() : "Unknown Problem";
 
         const payload = {
-            platform: "gfg",
+            platform: "geeksforgeeks",
             slug,
             url: getProblemURL(),
             username,

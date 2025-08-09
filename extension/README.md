@@ -14,7 +14,7 @@ This Chrome extension tracks your coding submissions on LeetCode, GeeksforGeeks,
 1. Click on the extension icon in your browser toolbar
 2. Enter your email address and click "Save Email"
 3. Click "Test Backend Connection" to verify your backend server is running
-4. Make sure your backend server is running on `http://localhost:3000`
+4. Make sure your backend server is running on `http://localhost:5000`
 
 ## How it Works
 
@@ -65,8 +65,10 @@ All platforms use a consistent data format for logging and sending to the backen
    - Look for console logs that indicate the script is running
 
 3. **Backend connection failed?**
-   - Ensure your backend server is running on `http://localhost:3000`
-   - Check that the `/api/submissions` endpoint exists and accepts POST requests
+   - Ensure your backend server is running on `http://localhost:5000`
+   - The extension uses the following endpoints:
+     - Primary: `http://localhost:5000/api/submissions/extension` (specialized endpoint for extension)
+     - Fallback: `http://localhost:5000/api/submissions` (standard submissions endpoint)
    - Verify CORS settings if needed
 
 ## Console Logs

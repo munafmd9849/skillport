@@ -337,7 +337,7 @@ router.post('/bulk', authenticateToken, async (req, res) => {
 router.post('/extension', async (req, res) => {
   try {
     // Validate minimal required fields
-    const { email, platform, url, slug, timestamp } = req.body;
+    const { email, platform, url, slug, timestamp, username } = req.body;
     
     if (!email || !platform || !url) {
       return res.status(400).json({ 
@@ -360,6 +360,17 @@ router.post('/extension', async (req, res) => {
     // If we have a slug but no problemTitle, use it as a fallback
     if (slug && !req.body.problemTitle) {
       submissionData.problemTitle = slug.replace(/-/g, ' ');
+    }
+    
+    // Set platform-specific username fields
+    if (username) {
+      if (platform === 'leetcode') {
+        submissionData.leetcodeUsername = username;
+      } else if (platform === 'codeforces') {
+        submissionData.codeforcesUsername = username;
+      } else if (platform === 'geeksforgeeks') {
+        submissionData.gfgUsername = username;
+      }
     }
 
     const submission = new Submission(submissionData);

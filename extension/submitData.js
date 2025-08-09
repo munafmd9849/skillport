@@ -22,7 +22,7 @@ function submitToSkillPort(data) {
   };
 
   // Send the data to the backend
-  return fetch('http://localhost:3001/api/submissions', {
+  return fetch('http://localhost:5000/api/submissions/extension', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

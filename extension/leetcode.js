@@ -1,6 +1,6 @@
 console.log("📡 SkillPort LeetCode Tracker Active");
 
-const BACKEND_URL = "http://localhost:3001/api/submissions"; // Change if hosted
+const BACKEND_URL = "http://localhost:5000/api/submissions/extension"; // Updated to main server endpoint
 let lastLoggedSlug = null;
 let attempts = 0;
 let submissionInProgress = false;

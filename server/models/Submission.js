@@ -35,6 +35,20 @@ const submissionSchema = new mongoose.Schema({
     min: [1, 'Attempts must be at least 1']
   },
   
+  // Platform-specific usernames (migrated from backend implementation)
+  leetcodeUsername: {
+    type: String,
+    trim: true
+  },
+  codeforcesUsername: {
+    type: String,
+    trim: true
+  },
+  gfgUsername: {
+    type: String,
+    trim: true
+  },
+  
   // Extended fields (for additional functionality)
   problemTitle: {
     type: String,

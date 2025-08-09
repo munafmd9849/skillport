@@ -5,10 +5,13 @@ console.log("Background script loaded");
 // Configuration for backend endpoints
 const CONFIG = {
   // Primary endpoint (server implementation)
-  serverEndpoint: "http://localhost:3001/api/submissions",
-  // Fallback endpoint (legacy backend implementation)
-  backendEndpoint: "http://localhost:3001/api/submissions"
+  serverEndpoint: "http://localhost:5000/api/submissions/extension",
+  // Fallback endpoint (legacy implementation - for backward compatibility)
+  backendEndpoint: "http://localhost:5000/api/submissions"
 };
+
+// Log the configuration for debugging
+console.log("Backend configuration:", CONFIG);
 
 // Track submissions to avoid duplicates
 const submissionTracker = {
@@ -68,6 +71,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let response;
         
         try {
+          console.log(`Attempting to send data to ${endpoint}`);
           response = await fetch(endpoint, {
             method: "POST",
             headers: {
@@ -75,20 +79,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             },
             body: JSON.stringify(message.data)
           });
+          console.log(`Response status from ${endpoint}:`, response.status);
         } catch (err) {
-          console.log("Primary endpoint failed, trying fallback:", err);
+          console.error(`Error with primary endpoint ${endpoint}:`, err);
           endpoint = CONFIG.backendEndpoint;
-          response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(message.data)
-          });
+          console.log(`Trying fallback endpoint ${endpoint}`);
+          try {
+            response = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(message.data)
+            });
+            console.log(`Response status from fallback ${endpoint}:`, response.status);
+          } catch (fallbackErr) {
+            console.error(`Error with fallback endpoint ${endpoint}:`, fallbackErr);
+            throw fallbackErr;
+          }
         }
         
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+          throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
         }
         
         const resJson = await response.json();

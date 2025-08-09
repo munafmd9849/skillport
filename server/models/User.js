@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'Name cannot exceed 50 characters']
   },
+  username: {
+    type: String,
+    required: [true, 'Username is required'],
+    unique: true,
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -52,10 +58,7 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Virtual for username (derived from email)
-userSchema.virtual('username').get(function() {
-  return this.email.split('@')[0];
-});
+// Username is now a real field, not a virtual
 
 // Index for better query performance
 userSchema.index({ email: 1 });
@@ -93,4 +96,4 @@ userSchema.methods.getPublicProfile = function() {
   return userObject;
 };
 
-module.exports = mongoose.model('User', userSchema); 
+module.exports = mongoose.model('User', userSchema);

@@ -14,6 +14,12 @@ The Submission model has been updated to support the simplified data format sent
 - `platform`: The coding platform (leetcode, geeksforgeeks, hackerrank, codeforces)
 - `attempts`: Number of attempts (default: 1)
 
+### Platform-Specific Username Fields
+
+- `leetcodeUsername`: Username for LeetCode submissions
+- `codeforcesUsername`: Username for Codeforces submissions
+- `gfgUsername`: Username for GeeksforGeeks submissions
+
 ### Extended Fields (for Application)
 
 - `problemTitle`: The title of the problem
@@ -57,14 +63,14 @@ The bulk submission endpoint has been updated to handle the simplified data form
 
 ## Extension Configuration
 
-The browser extension has been updated to use the new server endpoint with a fallback to the legacy backend endpoint if the server is not available.
+The browser extension has been updated to use the unified server endpoints:
 
 ```javascript
 // Configuration for backend endpoints
 const CONFIG = {
-  // Primary endpoint (server implementation)
+  // Primary endpoint (specialized extension endpoint)
   serverEndpoint: "http://localhost:5000/api/submissions/extension",
-  // Fallback endpoint (legacy backend implementation)
-  backendEndpoint: "http://localhost:3001/api/submissions"
+  // Fallback endpoint (standard submissions endpoint)
+  backendEndpoint: "http://localhost:5000/api/submissions"
 };
 ```

@@ -43,10 +43,10 @@ skillport/
 │   │   ├── utils/         # Utility functions
 │   │   └── App.js
 │   └── package.json
-├── server/                 # Node.js Backend
+├── server/                 # Node.js Backend (Unified Server)
 │   ├── models/            # MongoDB models
 │   │   ├── User.js
-│   │   ├── Submission.js  # Updated with core and extended fields
+│   │   ├── Submission.js  # Updated with core, platform-specific, and extended fields
 │   │   └── Batch.js
 │   ├── routes/            # API routes
 │   │   ├── auth.js
