@@ -14,28 +14,45 @@ let currentUsers = [];
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin Users: DOM Content Loaded - Starting initialization...');
+    
     // Initialize elements
+    console.log('Admin Users: Step 1 - Initializing elements...');
     initializeElements();
     
     // Check authentication
+    console.log('Admin Users: Step 2 - Checking authentication...');
     checkAuthentication();
     
     // Load users data
+    console.log('Admin Users: Step 3 - Loading users data...');
     loadUsersData();
     
     // Set up event listeners
+    console.log('Admin Users: Step 4 - Setting up event listeners...');
     setupEventListeners();
+    
+    console.log('Admin Users: Initialization complete!');
 });
 
 // Initialize DOM elements
 function initializeElements() {
-    // Stats cards
+    console.log('Admin Users: Initializing DOM elements...');
+    
+    // Stats cards - match the HTML structure
     userStatsElements = {
         totalUsers: document.querySelector('.stats-total-users'),
         activeUsers: document.querySelector('.stats-active-users'),
-        inactiveUsers: document.querySelector('.stats-inactive-users'),
+        inactiveUsers: document.querySelector('.stats-new-users'), // This is the "New This Week" card
         newUsers: document.querySelector('.stats-new-users')
     };
+    
+    console.log('Admin Users: Stats elements found:', {
+        totalUsers: !!userStatsElements.totalUsers,
+        activeUsers: !!userStatsElements.activeUsers,
+        inactiveUsers: !!userStatsElements.inactiveUsers,
+        newUsers: !!userStatsElements.newUsers
+    });
     
     // Table and filters
     userTableBody = document.querySelector('table tbody');
@@ -44,26 +61,48 @@ function initializeElements() {
     contestFilter = document.querySelector('select:nth-of-type(1)');
     sortBySelect = document.querySelector('select:nth-of-type(3)');
     
+    console.log('Admin Users: Table elements found:', {
+        tableBody: !!userTableBody,
+        searchInput: !!searchInput,
+        statusFilter: !!statusFilter,
+        contestFilter: !!contestFilter,
+        sortBySelect: !!sortBySelect
+    });
+    
     // Form elements
     addUserForm = document.getElementById('addUserForm');
+    console.log('Admin Users: Add user form found:', !!addUserForm);
 }
 
 // Check if user is authenticated and has admin role
 function checkAuthentication() {
+    console.log('Admin Users: Checking authentication...');
+    
     // Check if user is authenticated and has admin role
     if (typeof isLoggedIn === 'function' && typeof getCurrentUser === 'function') {
-        if (!isLoggedIn()) {
+        console.log('Admin Users: Auth functions are available');
+        
+        const loggedIn = isLoggedIn();
+        console.log('Admin Users: isLoggedIn() result:', loggedIn);
+        
+        if (!loggedIn) {
             console.error('User not logged in');
-            window.location.href = '../../../index.html';
+            window.location.href = '/index.html';
             return;
         }
         
         const currentUser = getCurrentUser();
+        console.log('Admin Users: Current user from getCurrentUser():', currentUser);
+        
         if (!currentUser || currentUser.role !== 'admin') {
             console.error('User not authorized as admin');
-            window.location.href = '../../../index.html';
+            window.location.href = '/index.html';
             return;
         }
+        
+        console.log('Admin Users: Authentication successful - user is admin');
+    } else {
+        console.log('Admin Users: Auth functions not available, skipping authentication check');
     }
 }
 
@@ -109,14 +148,45 @@ function setupEventListeners() {
 // Load users data from API
 async function loadUsersData() {
     try {
+        console.log('Admin Users: Starting to load users data...');
+        
         // Get token from localStorage
         const token = localStorage.getItem('token');
+        console.log('Admin Users: Token from localStorage:', token ? 'Token exists' : 'No token found');
+        
         if (!token) {
             console.error('No authentication token found');
+            console.log('Admin Users: Falling back to mock data due to no token');
             // For development purposes, continue with mock data
             loadMockData();
             return;
         }
+        
+        // Check if user is logged in
+        if (typeof isLoggedIn === 'function') {
+            const loggedIn = isLoggedIn();
+            console.log('Admin Users: isLoggedIn() result:', loggedIn);
+            
+            if (!loggedIn) {
+                console.error('User not logged in according to isLoggedIn()');
+                loadMockData();
+                return;
+            }
+        }
+        
+        // Check current user role
+        if (typeof getCurrentUser === 'function') {
+            const currentUser = getCurrentUser();
+            console.log('Admin Users: Current user:', currentUser);
+            
+            if (!currentUser || currentUser.role !== 'admin') {
+                console.error('User not authorized as admin');
+                loadMockData();
+                return;
+            }
+        }
+        
+        console.log('Admin Users: Making API call to /api/users...');
         
         // Fetch users data
         const response = await fetch(`${API_BASE_URL}/users`, {
@@ -127,19 +197,28 @@ async function loadUsersData() {
             }
         });
         
+        console.log('Admin Users: API response status:', response.status);
+        console.log('Admin Users: API response headers:', response.headers);
+        
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Admin Users: API error response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         const users = await response.json();
+        console.log('Admin Users: Loaded users from API:', users);
         currentUsers = users;
         
         // Update UI with users data
         updateUserStats(users);
         renderUsersTable(users);
         
+        console.log('Admin Users: Successfully updated UI with real data');
+        
     } catch (error) {
         console.error('Error loading users data:', error);
+        console.log('Admin Users: Falling back to mock data due to error');
         // Fall back to mock data for development
         loadMockData();
     }
@@ -147,7 +226,7 @@ async function loadUsersData() {
 
 // Load mock data for development
 function loadMockData() {
-    console.log('Loading mock data for development');
+    console.log('Admin Users: Loading mock data for development');
     
     const mockUsers = [
         {
@@ -156,10 +235,7 @@ function loadMockData() {
             username: 'rahulkumar',
             email: 'rahul.kumar@email.com',
             role: 'student',
-            status: 'active',
             assignedBatches: [{ _id: 'batch1', name: 'DSA Contest #1' }],
-            performance: 847,
-            performanceChange: 23,
             createdAt: '2024-12-15T00:00:00.000Z'
         },
         {
@@ -168,10 +244,7 @@ function loadMockData() {
             username: 'priyasharma',
             email: 'priya.sharma@email.com',
             role: 'student',
-            status: 'active',
             assignedBatches: [{ _id: 'batch2', name: 'Python Contest #1' }],
-            performance: 823,
-            performanceChange: 15,
             createdAt: '2024-12-10T00:00:00.000Z'
         },
         {
@@ -180,26 +253,33 @@ function loadMockData() {
             username: 'amitpatel',
             email: 'amit.patel@email.com',
             role: 'student',
-            status: 'pending',
             assignedBatches: [],
-            performance: 798,
-            performanceChange: 8,
             createdAt: '2024-12-08T00:00:00.000Z'
         }
     ];
     
+    console.log('Admin Users: Mock users data:', mockUsers);
+    
     currentUsers = mockUsers;
     updateUserStats(mockUsers);
     renderUsersTable(mockUsers);
+    
+    console.log('Admin Users: Mock data loaded and displayed successfully');
 }
 
 // Update user statistics
 function updateUserStats(users) {
-    if (!userStatsElements.totalUsers) return;
+    console.log('Admin Users: Updating user stats with', users.length, 'users');
+    
+    if (!userStatsElements.totalUsers) {
+        console.error('Admin Users: Stats elements not found, cannot update stats');
+        return;
+    }
     
     const totalUsers = users.length;
-    const activeUsers = users.filter(user => user.status === 'active').length;
-    const inactiveUsers = users.filter(user => user.status === 'inactive').length;
+    // For now, assume all users are active (we can add status field later)
+    const activeUsers = users.length;
+    const inactiveUsers = 0;
     const newUsers = users.filter(user => {
         const createdDate = new Date(user.createdAt);
         const oneWeekAgo = new Date();
@@ -207,19 +287,36 @@ function updateUserStats(users) {
         return createdDate >= oneWeekAgo;
     }).length;
     
+    console.log('Admin Users: Calculated stats:', {
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        newUsers
+    });
+    
     userStatsElements.totalUsers.textContent = totalUsers;
     userStatsElements.activeUsers.textContent = activeUsers;
-    userStatsElements.inactiveUsers.textContent = inactiveUsers;
+    userStatsElements.inactiveUsers.textContent = newUsers; // Show new users in the "New This Week" card
     userStatsElements.newUsers.textContent = newUsers;
+    
+    console.log('Admin Users: Stats updated successfully');
 }
 
 // Render users table
 function renderUsersTable(users) {
-    if (!userTableBody) return;
+    console.log('Admin Users: Rendering users table with', users.length, 'users');
     
+    if (!userTableBody) {
+        console.error('Admin Users: Table body element not found, cannot render table');
+        return;
+    }
+    
+    console.log('Admin Users: Clearing existing table content');
     userTableBody.innerHTML = '';
     
-    users.forEach(user => {
+    users.forEach((user, index) => {
+        console.log(`Admin Users: Rendering user ${index + 1}:`, user);
+        
         const row = document.createElement('tr');
         row.className = 'hover:bg-slate-50';
         
@@ -252,21 +349,8 @@ function renderUsersTable(users) {
             `;
         }
         
-        // Determine status badge
-        let statusBadge = '';
-        switch(user.status) {
-            case 'active':
-                statusBadge = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Active</span>';
-                break;
-            case 'inactive':
-                statusBadge = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">Inactive</span>';
-                break;
-            case 'pending':
-                statusBadge = '<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">Pending</span>';
-                break;
-            default:
-                statusBadge = '<span class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs">Unknown</span>';
-        }
+        // Determine status badge - assume all users are active for now
+        let statusBadge = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Active</span>';
         
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">
@@ -290,8 +374,8 @@ function renderUsersTable(users) {
                 ${statusBadge}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-semibold text-slate-900">${user.performance || 0} pts</div>
-                <div class="text-xs text-green-600">+${user.performanceChange || 0} this week</div>
+                <div class="text-sm font-semibold text-slate-900">${user.role || 'student'}</div>
+                <div class="text-xs text-slate-500">Role</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-slate-900">${formattedDate}</div>
@@ -439,11 +523,13 @@ async function createUser() {
         }
         
         const newUser = await response.json();
+        console.log('Admin Users: User created successfully:', newUser);
         
         // If contest is selected, assign user to batch
         if (contest) {
             // This would require an additional API call to assign the user to a batch
             // For now, we'll just show a success message
+            console.log('Admin Users: Contest assignment not implemented yet');
         }
         
         alert('User created successfully!');
@@ -541,6 +627,7 @@ async function confirmDeleteUser() {
             throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
         
+        console.log('Admin Users: User deleted successfully');
         alert('User deleted successfully!');
         closeDeleteUserModal();
         

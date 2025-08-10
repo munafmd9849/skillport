@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 5px; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Admin Dashboard Test</h1>
+    
+    <div class="test-section">
+        <h2>Step 1: Login as Admin</h2>
+        <p>Use the credentials from the create-admin script:</p>
+        <p><strong>Email:</strong> <span id="admin-email">admin_1754824596042_hr0m82@example.com</span></p>
+        <p><strong>Password:</strong> Admin123!</p>
+        <button onclick="loginAsAdmin()">Login as Admin</button>
+        <div id="login-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 2: Test Dashboard API</h2>
+        <button onclick="testDashboardOverview()">Test Dashboard Overview</button>
+        <button onclick="testSystemStatus()">Test System Status</button>
+        <div id="api-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 3: Test Admin Dashboard Page</h2>
+        <button onclick="testDirectAdminRoute()" class="btn btn-info">Test Direct Admin Route</button>
+        <button onclick="openAdminDashboard()" class="btn btn-success">Open Admin Dashboard</button>
+        <button onclick="openAdminDashboardNewTab()" class="btn btn-warning">Open Admin Dashboard (New Tab)</button>
+        <p>This will open the actual admin dashboard page to test the full functionality.</p>
+    </div>
+
+    <script>
+        // Admin credentials
+        const adminCredentials = {
+            email: 'admin_1754824596042_hr0m82@example.com',
+            password: 'Admin123!'
+        };
+
+        // Login function
+        async function loginAsAdmin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = '<p class="info">Logging in...</p>';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(adminCredentials)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Login successful!</p>
+                        <p><strong>User:</strong> ${data.user.name} (${data.user.role})</p>
+                        <p><strong>Token:</strong> ${data.token.substring(0, 50)}...</p>
+                    `;
+                } else {
+                    const errorData = await response.text();
+                    resultDiv.innerHTML = `<p class="error">❌ Login failed: ${response.status} - ${errorData}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Test dashboard overview API
+        async function testDashboardOverview() {
+            const resultDiv = document.getElementById('api-result');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<p class="error">❌ Please login first!</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p class="info">Testing dashboard overview...</p>';
+            
+            try {
+                const response = await fetch('/api/dashboard/overview', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Dashboard overview successful!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    const errorData = await response.text();
+                    resultDiv.innerHTML = `<p class="error">❌ Dashboard overview failed: ${response.status} - ${errorData}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Test system status API
+        async function testSystemStatus() {
+            const resultDiv = document.getElementById('api-result');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<p class="error">❌ Please login first!</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p class="info">Testing system status...</p>';
+            
+            try {
+                const response = await fetch('/api/dashboard/system-status', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ System status successful!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    const errorData = await response.text();
+                    resultDiv.innerHTML = `<p class="error">❌ System status failed: ${response.status} - ${errorData}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Open admin dashboard
+        function openAdminDashboard() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login first!');
+                return;
+            }
+            
+            console.log('Opening admin dashboard...');
+            console.log('Current URL:', window.location.href);
+            console.log('Target URL:', '/community/admin/admin-dashboard.html');
+            
+            // Try opening in same tab first to debug
+            window.location.href = '/community/admin/admin-dashboard.html';
+            
+            // Alternative: Open in new tab
+            // window.open('/community/admin/admin-dashboard.html', '_blank');
+        }
+
+        // Open admin dashboard in a new tab
+        function openAdminDashboardNewTab() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login first!');
+                return;
+            }
+            window.open('/community/admin/admin-dashboard.html', '_blank');
+        }
+
+        // Test direct admin route (no authentication needed)
+        async function testDirectAdminRoute() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<p class="info">Testing direct admin route...</p>';
+
+            try {
+                const response = await fetch('/community/admin/admin-dashboard.html');
+                if (response.ok) {
+                    const htmlContent = await response.text();
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Direct admin route successful!</p>
+                        <p>Response status: ${response.status}</p>
+                        <p>Content length: ${htmlContent.length} characters</p>
+                        <details>
+                            <summary>View HTML Content (first 500 chars)</summary>
+                            <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto;">${htmlContent.substring(0, 500)}...</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Direct admin route failed: ${response.status} - ${response.statusText}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -12,6 +12,8 @@ let recentMentorsElement;
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin Dashboard: Initializing...');
+    
     // Initialize elements
     initializeElements();
     
@@ -24,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize DOM elements
 function initializeElements() {
+    console.log('Admin Dashboard: Initializing DOM elements...');
+    
     // Stats cards
     statsElements = {
         totalUsers: document.querySelector('.stats-total-users'),
@@ -44,15 +48,31 @@ function initializeElements() {
     recentActivityElement = document.querySelector('.recent-activity-list');
     recentUsersElement = document.querySelector('.recent-users-list');
     recentMentorsElement = document.querySelector('.recent-mentors-list');
+    
+    // Log what we found
+    console.log('Admin Dashboard: Elements found:', {
+        stats: Object.keys(statsElements).filter(key => statsElements[key]),
+        system: Object.keys(systemStatusElements).filter(key => systemStatusElements[key]),
+        recent: {
+            activity: !!recentActivityElement,
+            users: !!recentUsersElement,
+            mentors: !!recentMentorsElement
+        }
+    });
 }
 
 // Set up event listeners
 function setupEventListeners() {
+    console.log('Admin Dashboard: Setting up event listeners...');
+    
     // Quick action buttons
     const quickActions = document.querySelectorAll('.quick-action');
+    console.log('Admin Dashboard: Found quick actions:', quickActions.length);
+    
     quickActions.forEach(action => {
         action.addEventListener('click', function(e) {
             const actionType = this.dataset.action;
+            console.log('Admin Dashboard: Quick action clicked:', actionType);
             handleQuickAction(actionType);
         });
     });
@@ -60,34 +80,57 @@ function setupEventListeners() {
 
 // Load dashboard data from API
 async function loadDashboardData() {
+    console.log('Admin Dashboard: Loading dashboard data...');
+    console.log('Admin Dashboard: Window location:', window.location.href);
+    console.log('Admin Dashboard: Document ready state:', document.readyState);
+    
     try {
         // Check if user is authenticated and has admin role
+        console.log('Admin Dashboard: Checking auth functions...');
+        console.log('Admin Dashboard: isLoggedIn function:', typeof isLoggedIn);
+        console.log('Admin Dashboard: getCurrentUser function:', typeof getCurrentUser);
+        console.log('Admin Dashboard: localStorage token:', !!localStorage.getItem('token'));
+        console.log('Admin Dashboard: localStorage user:', !!localStorage.getItem('user'));
+        
         if (typeof isLoggedIn === 'function' && typeof getCurrentUser === 'function') {
+            console.log('Admin Dashboard: Auth functions available');
+            
             if (!isLoggedIn()) {
-                console.error('User not logged in');
-                window.location.href = '../../../index.html';
+                console.error('Admin Dashboard: User not logged in');
+                console.log('Admin Dashboard: Redirecting to /index.html');
+                window.location.href = '/index.html';
                 return;
             }
             
             const currentUser = getCurrentUser();
+            console.log('Admin Dashboard: Current user:', currentUser);
+            
             if (!currentUser || currentUser.role !== 'admin') {
-                console.error('User not authorized as admin');
-                window.location.href = '../../../index.html';
+                console.error('Admin Dashboard: User not authorized as admin');
+                console.log('Admin Dashboard: User role:', currentUser?.role);
+                console.log('Admin Dashboard: Redirecting to /index.html');
+                window.location.href = '/index.html';
                 return;
             }
+        } else {
+            console.log('Admin Dashboard: Auth functions not available, checking localStorage directly');
         }
         
         // Get token from localStorage
         const token = localStorage.getItem('token');
+        console.log('Admin Dashboard: Token found:', !!token);
+        
         if (!token) {
-            console.error('No authentication token found');
-            // For development purposes, continue with mock data
+            console.error('Admin Dashboard: No authentication token found');
+            console.log('Admin Dashboard: Loading mock data for development');
             loadMockData();
             return;
         }
         
         // Update system status elements while loading
         updateSystemStatus('Loading...', 'text-amber-600');
+        
+        console.log('Admin Dashboard: Fetching dashboard overview...');
         
         // Fetch dashboard overview data
         const response = await fetch(`${API_BASE_URL}/dashboard/overview`, {
@@ -98,16 +141,24 @@ async function loadDashboardData() {
             }
         });
         
+        console.log('Admin Dashboard: Overview response status:', response.status);
+        
         if (!response.ok) {
             if (response.status === 401 || response.status === 403) {
-                console.error('Authentication error:', response.status);
-                window.location.href = '../../../index.html';
+                console.error('Admin Dashboard: Authentication error:', response.status);
+                window.location.href = '/index.html';
                 return;
             }
-            throw new Error(`API error: ${response.status}`);
+            
+            const errorText = await response.text();
+            console.error('Admin Dashboard: API error response:', errorText);
+            throw new Error(`API error: ${response.status} - ${errorText}`);
         }
         
         const data = await response.json();
+        console.log('Admin Dashboard: Overview data received:', data);
+        
+        console.log('Admin Dashboard: Fetching system status...');
         
         // Fetch system status data
         const systemResponse = await fetch(`${API_BASE_URL}/dashboard/system-status`, {
@@ -118,12 +169,17 @@ async function loadDashboardData() {
             }
         });
         
+        console.log('Admin Dashboard: System status response:', systemResponse.status);
+        
         if (systemResponse.ok) {
             const systemData = await systemResponse.json();
+            console.log('Admin Dashboard: System data received:', systemData);
             // Add system data to the dashboard data
             data.system = systemData;
         } else {
-            console.error('Error fetching system status:', systemResponse.status);
+            console.error('Admin Dashboard: Error fetching system status:', systemResponse.status);
+            const errorText = await systemResponse.text();
+            console.error('Admin Dashboard: System status error response:', errorText);
         }
         
         updateDashboard(data.overview || data);
@@ -144,8 +200,11 @@ async function loadDashboardData() {
             updateSystemStatus('Operational', 'text-green-600');
         }
         
+        console.log('Admin Dashboard: Dashboard data loaded successfully');
+        
     } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        console.error('Admin Dashboard: Error loading dashboard data:', error);
+        console.log('Admin Dashboard: Loading mock data due to error');
         // For demo purposes, load mock data if API fails
         loadMockData();
         updateSystemStatus('Degraded', 'text-amber-600');
@@ -169,19 +228,23 @@ function updateSystemStatus(status, colorClass) {
 
 // Update dashboard with data
 function updateDashboard(data) {
-    // Update stats cards
+    console.log('Admin Dashboard: Updating dashboard with data:', data);
+    
+    // Update stats cards with real data
     if (statsElements.totalUsers) {
-        statsElements.totalUsers.textContent = data.totalUsers || '247';
+        statsElements.totalUsers.textContent = data.totalUsers || '0';
     }
     if (statsElements.totalMentors) {
-        statsElements.totalMentors.textContent = data.totalMentors || '18';
+        statsElements.totalMentors.textContent = data.totalMentors || '0';
     }
     if (statsElements.totalContests) {
-        statsElements.totalContests.textContent = data.totalBatches || '25';
+        // Use totalBatches from API (which represents contests)
+        statsElements.totalContests.textContent = data.totalBatches || '0';
     }
     if (statsElements.totalProblemsSolved) {
         const overallStats = data.overallStats || {};
-        statsElements.totalProblemsSolved.textContent = overallStats.totalSubmissions || '1,847';
+        // Use solved count from API instead of totalSubmissions
+        statsElements.totalProblemsSolved.textContent = overallStats.solved || '0';
     }
     
     // Update system overview if available
@@ -205,6 +268,9 @@ function updateDashboard(data) {
     if (data.recentMentors && recentMentorsElement) {
         updateRecentMentors(data.recentMentors);
     }
+    
+    // Log what data was actually used
+    console.log('Admin Dashboard: Stats updated - Users:', data.totalUsers, 'Mentors:', data.totalMentors, 'Batches:', data.totalBatches, 'Solved:', data.overallStats?.solved);
 }
 
 // Update system overview section
@@ -249,34 +315,43 @@ function updateSystemOverview(system) {
 function updateRecentActivity(activities) {
     if (!recentActivityElement) return;
     
+    console.log('Admin Dashboard: Updating recent activity with:', activities);
     recentActivityElement.innerHTML = '';
+    
+    if (!activities || activities.length === 0) {
+        recentActivityElement.innerHTML = `
+            <div class="text-center py-4 text-slate-500">
+                <i data-lucide="info" class="w-6 h-6 mx-auto mb-2"></i>
+                <p class="text-sm">No recent batches found</p>
+            </div>
+        `;
+        return;
+    }
     
     activities.slice(0, 4).forEach(activity => {
         const activityItem = document.createElement('div');
         activityItem.className = 'flex items-start gap-3';
         
-        // Determine icon based on activity type
-        let iconClass = 'trophy';
-        let bgColorClass = 'bg-blue-100';
-        let textColorClass = 'text-blue-600';
+        // For batches, we'll show batch creation activity
+        const iconClass = 'trophy';
+        const bgColorClass = 'bg-blue-100';
+        const textColorClass = 'text-blue-600';
         
-        if (activity.type === 'user') {
-            iconClass = 'user-plus';
-            bgColorClass = 'bg-green-100';
-            textColorClass = 'text-green-600';
-        } else if (activity.type === 'mentor') {
-            iconClass = 'graduation-cap';
-            bgColorClass = 'bg-purple-100';
-            textColorClass = 'text-purple-600';
-        }
+        // Get batch name and student count
+        const batchName = activity.name || 'Unnamed Batch';
+        const studentCount = activity.students ? activity.students.length : 0;
+        const mentorCount = activity.mentors ? activity.mentors.length : 0;
+        
+        // Format creation date
+        const createdAt = activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : 'Unknown date';
         
         activityItem.innerHTML = `
             <div class="w-8 h-8 ${bgColorClass} rounded-full flex items-center justify-center">
                 <i data-lucide="${iconClass}" class="w-4 h-4 ${textColorClass}"></i>
             </div>
             <div class="flex-1">
-                <p class="text-sm font-medium text-slate-900">${activity.title || 'New batch created'}</p>
-                <p class="text-xs text-slate-500">${activity.description || 'Created by admin'} ${activity.timeAgo || '4 hours ago'}</p>
+                <p class="text-sm font-medium text-slate-900">${batchName}</p>
+                <p class="text-xs text-slate-500">${studentCount} students, ${mentorCount} mentors • Created ${createdAt}</p>
             </div>
         `;
         
